@@ -1,6 +1,7 @@
 import express from "express";
 import WebSocket from "ws";
 import http from "http";
+import { SocketAddress } from "net";
 
 const app = express();
 const PORT = 3000;
@@ -16,13 +17,15 @@ const handleListen = () => console.log(`Listening on http://localhost:${PORT}`);
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server }); //start http and wss server on the same port
 
+const sockets = [];
+
 wss.on("connection", (socket) => {
+  sockets.push(socket);
   console.log("Connected to the Browser");
   socket.on("close", () => console.log("Disconnected from the browser"));
   socket.on("message", (message) => {
-    console.log(message.toString("utf8"));
+    sockets.forEach((aSocket) => aSocket.send(message.toString("utf8")));
   });
-  socket.send("hello!!!");
 });
 
 server.listen(PORT, handleListen);
