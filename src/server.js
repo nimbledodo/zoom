@@ -17,6 +17,7 @@ const server = http.createServer(app);
 const io = SocketIO(server); //start http and wss server on the same port
 
 io.on("connection", (socket) => {
+  socket["nickname"] = "Anon";
   socket.onAny((event) => {
     console.log(`Socket Event: ${event}`);
   });
@@ -24,17 +25,21 @@ io.on("connection", (socket) => {
   socket.on("enter_room", (roomName, done) => {
     socket.join(roomName);
     done();
-    socket.to(roomName).emit("welcome");
-  });
-
-  socket.on("new_message", (msg, room, done) => {
-    socket.to(room).emit("new_message", msg);
-    done();
+    socket.to(roomName).emit("welcome", socket.nickname);
   });
 
   socket.on("disconnecting", () => {
-    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+    socket.rooms.forEach((room) =>
+      socket.to(room).emit("bye", socket.nickname)
+    );
   });
+
+  socket.on("new_message", (msg, room, done) => {
+    socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
+    done();
+  });
+
+  socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
 });
 
 server.listen(PORT, handleListen);
