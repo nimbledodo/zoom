@@ -16,4 +16,13 @@ const handleListen = () => console.log(`Listening on http://localhost:${PORT}`);
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server }); //start http and wss server on the same port
 
+wss.on("connection", (socket) => {
+  console.log("Connected to the Browser");
+  socket.on("close", () => console.log("Disconnected from the browser"));
+  socket.on("message", (message) => {
+    console.log(message.toString("utf8"));
+  });
+  socket.send("hello!!!");
+});
+
 server.listen(PORT, handleListen);
