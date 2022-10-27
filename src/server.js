@@ -17,8 +17,12 @@ const server = http.createServer(app);
 const io = SocketIO(server); //start http and wss server on the same port
 
 io.on("connection", (socket) => {
-  socket.on("enter_room", (msg) => {
-    console.log(msg);
+  socket.onAny((event) => {
+    console.log(`Socket Event: ${event}`);
+  });
+  socket.on("enter_room", (roomName, done) => {
+    socket.join(roomName);
+    done();
   });
 });
 
