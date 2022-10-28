@@ -119,6 +119,8 @@ socket.on("welcome", async () => {
   socket.emit("offer", offer, roomName);
 });
 
+socket.on("offer", (offer) => {});
+
 //RTC Code
 let myPeerConnection;
 function makeConnection() {
