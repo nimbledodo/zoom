@@ -98,7 +98,7 @@ async function initCall() {
   welcome.hidden = true;
   call.hidden = false;
   await getMedia();
-  maekConnection();
+  makeConnection();
 }
 
 async function handleWelcomeSubmit(event) {
@@ -115,7 +115,7 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 //Socket Code
 
 socket.on("welcome", async () => {
-  const offer = await myPeerConnection.offer();
+  const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
   socket.emit("offer", offer, roomName);
 });
@@ -131,11 +131,28 @@ socket.on("answer", (answer) => {
   myPeerConnection.setRemoteDescription(answer);
 });
 
+socket.on("ice", (ice) => {
+  console.log("received candidate");
+  myPeerConnection.addIceCandidate(ice);
+});
+
 //RTC Code
 let myPeerConnection;
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection();
+  myPeerConnection.addEventListener("icecandidate", handleIce);
+  myPeerConnection.addEventListener("addstream", handleAddStream);
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
+
+function handleIce(data) {
+  console.log("sent candidate");
+  socket.emit("ice", data.candidate, roomName);
+}
+
+function handleAddStream(data) {
+  const peersStream = document.getElementById("peersStream");
+  peersStream.srcObject = data.stream;
 }
